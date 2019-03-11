@@ -77,6 +77,19 @@ class CIFAR10Data(object):
           image_data = image_data.reshape((10000, 3, 32, 32)).transpose(0, 2, 3, 1)
           return image_data, np.array(data_dict[b'labels'])
 
+    @staticmethod
+    def _reduce_color_bit_depth(imgs, bit_depth=3):
+        """
+        :param imgs: images or an image with shape (None, H, W, C) or (H, W, C)
+        :param bit_depth: color bit depth, default is 3, original is 8
+        :return: processed images with low color depth, shape (None, H, W, C)
+        """
+        imgs = imgs.astype(np.float32)
+        if len(imgs.shape) is 3:
+            imgs = imgs[np.newaxis, ...]
+        imgs_low_color_bit = np.maximum(np.floor_divide(imgs+1, 2**bit_depth) * 2**5 - 1, 0)
+        return imgs_low_color_bit
+
 class AugmentedCIFAR10Data(object):
     """
     Data augmentation wrapper over a loaded dataset.
