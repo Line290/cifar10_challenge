@@ -51,6 +51,10 @@ class CIFAR10Data(object):
         eval_images, eval_labels = self._load_datafile(
             os.path.join(path, eval_filename))
 
+        # reduce color bit depth
+        train_images = self._reduce_color_bit_depth(train_images, bit_depth=3)
+        eval_images = self._reduce_color_bit_depth(eval_images, bit_depth=3)
+        
         with open(os.path.join(path, metadata_filename), 'rb') as fo:
               if version.major == 3:
                   data_dict = pickle.load(fo, encoding='bytes')
@@ -84,10 +88,10 @@ class CIFAR10Data(object):
         :param bit_depth: color bit depth, default is 3, original is 8
         :return: processed images with low color depth, shape (None, H, W, C)
         """
-        imgs = imgs.astype(np.float32)
+        # imgs = imgs.astype(np.float32)
         if len(imgs.shape) is 3:
             imgs = imgs[np.newaxis, ...]
-        imgs_low_color_bit = np.maximum(np.floor_divide(imgs+1, 2**bit_depth) * 2**5 - 1, 0)
+        imgs_low_color_bit = np.maximum(np.floor_divide(imgs, 2**bit_depth) * 2**5 - 1, 0)
         return imgs_low_color_bit
 
 class AugmentedCIFAR10Data(object):
