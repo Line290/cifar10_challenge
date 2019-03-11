@@ -84,17 +84,23 @@ merged_summaries = tf.summary.merge_all()
 shutil.copy('config.json', model_dir)
 
 with tf.Session() as sess:
-
   # initialize data augmentation
   cifar = cifar10_input.AugmentedCIFAR10Data(raw_cifar, sess, model)
 
-  # Initialize the summary writer, global variables, and our time counter.
-  summary_writer = tf.summary.FileWriter(model_dir, sess.graph)
-  sess.run(tf.global_variables_initializer())
+  # Training with latest checkpoint
+  cur_checkpoint = tf.train.latest_checkpoint(model_dir)
+  if cur_checkpoint is None:
+      # Initialize the summary writer, global variables, and our time counter.
+      summary_writer = tf.summary.FileWriter(model_dir, sess.graph)
+      sess.run(tf.global_variables_initializer())
+  else:
+      saver.restore(sess, cur_checkpoint)
+
   training_time = 0.0
 
+  global_step_ = sess.run(global_step)
   # Main training loop
-  for ii in range(max_num_training_steps):
+  for ii in range(global_step_, max_num_training_steps):
     x_batch, y_batch = cifar.train_data.get_next_batch(batch_size,
                                                        multiple_passes=True)
 
@@ -117,7 +123,7 @@ with tf.Session() as sess:
       print('Step {}:    ({})'.format(ii, datetime.now()))
       print('    training nat accuracy {:.4}%'.format(nat_acc * 100))
       print('    training adv accuracy {:.4}%'.format(adv_acc * 100))
-      if ii != 0:
+      if ii != global_step_:
         print('    {} examples per second'.format(
             num_output_steps * batch_size / training_time))
         training_time = 0.0
@@ -127,7 +133,7 @@ with tf.Session() as sess:
       summary_writer.add_summary(summary, global_step.eval(sess))
 
     # Write a checkpoint
-    if ii % num_checkpoint_steps == 0:
+    if ii % num_checkpoint_steps == 0 and ii is not global_step_:
       saver.save(sess,
                  os.path.join(model_dir, 'checkpoint'),
                  global_step=global_step)

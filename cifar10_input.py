@@ -54,7 +54,7 @@ class CIFAR10Data(object):
         # reduce color bit depth
         train_images = self._reduce_color_bit_depth(train_images, bit_depth=3)
         eval_images = self._reduce_color_bit_depth(eval_images, bit_depth=3)
-        
+
         with open(os.path.join(path, metadata_filename), 'rb') as fo:
               if version.major == 3:
                   data_dict = pickle.load(fo, encoding='bytes')
