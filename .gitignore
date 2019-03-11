@@ -3,4 +3,6 @@ models/
 submitted_attacks/
 __pycache__/
 cifar10_data/
-./idea
+*.pyc
+.*
+!/.gitignore
